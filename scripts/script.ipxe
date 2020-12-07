@@ -1,0 +1,54 @@
+#!ipxe
+
+# Setup some basic convenience variables
+
+set syslog 192.168.1.122 || sync
+set burl http://pxeserver
+
+set menu-timeout 5000
+set submenu-timeout ${menu-timeout}
+
+# Ensure we have menu-default set to something
+isset ${menu-default} || set menu-default exit
+
+######## MAIN MENU ###################
+:start
+menu Welcome to iPXE Boot Menu
+item
+item --gap -- ------------------------- Utilities ------------------------------
+item --gap -- ------------------------------ Advanced ---------------------------------
+item config       Configure settings
+item shell      Enter iPXE shell
+item reboot     Reboot
+item exit       Exit (boot local disk)
+choose --default exit --timeout 30000 target && goto ${target}
+
+########## UTILITY ITEMS ####################
+:shell
+echo Type exit to get the back to the menu
+shell
+set menu-timeout 0
+goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+
+:reboot
+reboot
+
+:exit
+exit
+
+:cancel
+echo You cancelled the menu, dropping you to a shell
+ 
+:config
+config
+goto start
+ 
+:back
+set submenu-timeout 0
+clear submenu-default
+goto start
+

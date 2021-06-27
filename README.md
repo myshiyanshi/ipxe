@@ -22,8 +22,8 @@ iPXE is free, open-source software licensed under the GNU GPL (with some portion
 ### custom
 
     /src/config/console.h
-     CONSOLE_VMWARE - VMware logfile console
-     #define CONSOLE_VMWARE
+    CONSOLE_VMWARE - VMware logfile console
+    #define CONSOLE_VMWARE
 
     LOG_LEVEL - Log message level
     #define LOG_LEVEL LOG_ALL
@@ -31,16 +31,7 @@ iPXE is free, open-source software licensed under the GNU GPL (with some portion
     CONSOLE_SYSLOG - Syslog console
     #define CONSOLE_SYSLOG   CONSOLE_USAGE_LOG
 
-    make parameter : DEBUG=scsi:3,iscsi,image
-
-### host
-
-Quick start guide:
-
-   cd src
-   make
-
-For any more detailed instructions, see http://ipxe.org
+    make parameter : DEBUG=scsi:3,iscsi,image,efi_image
 
 ### docker
 
@@ -48,12 +39,17 @@ For any more detailed instructions, see http://ipxe.org
 
 container shell:
 
+    // version string generate
+    git describe --tags --always --long --abbrev=1 --match "v*"
+
     cd /ipxe/src && apk add syslinux && make
+
     make bin/undionly.kpxe
     make bin/undionly.kpxe EMBED=/ipxe/scripts/script.ipxe
-    make bin/ipxe.iso
-    make bin-x86_64-efi/ipxe.efi DEBUG=scsi:3,iscsi,image
-    cp src/bin-x86_64-efi/ipxe.efi ../tftproot/ipxe-202106.efi
+    make bin/ipxe.iso DEBUG=scsi:3,iscsi,image,efi_image
+
+    make bin-x86_64-efi/ipxe.efi DEBUG=scsi:3,iscsi,image,efi_image
+    make bin-x86_64-pcbios/ipxe.kpxe DEBUG=scsi:3,iscsi,image,efi_image
 
 ## deploy
 
@@ -67,12 +63,3 @@ router dhcp config file: dnsmasq.conf
 
     boot ipxe.efi
     chain http://${pxeserver}/boot.ipxe
-
-## other
-
-docker pull xbgmsharp/ipxe-buildweb
-docker run  -d \
-    --publish 8080:80 \
-    --publish 9999:22 \
-    --name ipxe-buildweb \
-    xbgmsharp/ipxe-buildweb

@@ -1,6 +1,6 @@
 # iPXE
 
-## 简介
+## Introduce
 
 iPXE is the leading open source network boot firmware. It provides a full PXE implementation enhanced with additional features such as:
 
@@ -19,31 +19,60 @@ iPXE is free, open-source software licensed under the GNU GPL (with some portion
 
 ## ipxe rom build
 
-    docker run -it --name ipxe-build \
-        -v ${PWD}/ipxe:/ipxe \
-        willglynn/ipxe-build-image sh
+### custom
 
-    container shell:
+    /src/config/console.h
+     CONSOLE_VMWARE - VMware logfile console
+     #define CONSOLE_VMWARE
 
-    cd /ipxe/src && make
+    LOG_LEVEL - Log message level
+    #define LOG_LEVEL LOG_ALL
+
+    CONSOLE_SYSLOG - Syslog console
+    #define CONSOLE_SYSLOG   CONSOLE_USAGE_LOG
+
+    make parameter : DEBUG=scsi:3,iscsi,image
+
+### host
+
+Quick start guide:
+
+   cd src
+   make
+
+For any more detailed instructions, see http://ipxe.org
+
+### docker
+
+    docker run -it --rm --name ipxe-build -v ${PWD}:/ipxe willglynn/ipxe-build-image sh
+
+container shell:
+
+    cd /ipxe/src && apk add syslinux && make
     make bin/undionly.kpxe
     make bin/undionly.kpxe EMBED=/ipxe/scripts/script.ipxe
     make bin/ipxe.iso
-    make bin-x86_64-efi/ipxe.efi DEBUG=scsi:3,iscsi
+    make bin-x86_64-efi/ipxe.efi DEBUG=scsi:3,iscsi,image
+    cp src/bin-x86_64-efi/ipxe.efi ../tftproot/ipxe-202106.efi
 
 ## deploy
 
-    dnsmasq.conf
+router dhcp config file: dnsmasq.conf
 
     dhcp-match=set:iPXE,175
-    dhcp-boot=tag:!iPXE,ipxe.efi,,192.168.1.122
-    dhcp-boot=tag:iPXE,http://pxeserver/menu.ipxe
+    dhcp-boot=tag:!iPXE,ipxe.efi,,192.168.1.122     #tftp
+    dhcp-boot=tag:iPXE,http://pxeserver/menu.ipxe   #http
 
 ## ipxe client
 
-    boot to ipxe.efi
+    boot ipxe.efi
     chain http://${pxeserver}/boot.ipxe
 
+## other
 
-
-
+docker pull xbgmsharp/ipxe-buildweb
+docker run  -d \
+    --publish 8080:80 \
+    --publish 9999:22 \
+    --name ipxe-buildweb \
+    xbgmsharp/ipxe-buildweb
